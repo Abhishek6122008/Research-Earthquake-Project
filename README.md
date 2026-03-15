@@ -15,7 +15,7 @@
 <p align="center">
   <a href="https://github.com/Abhishek6122008/Reserch-Earthquake-Project">
     <img 
-      src="https://postimg.cc/8FPxwTxQ"
+      src="https://i.postimg.cc/yNFB1dPd/project-imagwe.png"
       alt="Quantum Leap"
       width="900"
       style="border-radius: 20px;"
