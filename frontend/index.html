@@ -347,13 +347,26 @@
   </main>
 
   <script>
-    const API_URL = "http://127.0.0.1:8000/predict-file";
+    const API_URL = "https://earthquake-api-8lo4.onrender.com";
     const fileInput = document.getElementById("fileInput");
     const predictBtn = document.getElementById("predictBtn");
     const resultBox = document.getElementById("resultBox");
     const statusDot = document.getElementById("statusDot");
     const statusText = document.getElementById("statusText");
     const fileNameText = document.getElementById("fileName");
+
+    function formatPrediction(prediction) {
+      if (Array.isArray(prediction)) {
+        const formatted = prediction.map((value) =>
+          typeof value === "number" ? Number(value).toFixed(6) : String(value)
+        );
+        return `[${formatted.join(", ")}]`;
+      }
+      if (typeof prediction === "number") {
+        return Number(prediction).toFixed(6);
+      }
+      return String(prediction);
+    }
 
     function setResultState(message, state, statusLabel) {
       resultBox.textContent = message;
@@ -368,6 +381,7 @@
     async function predictFromFile() {
       const file = fileInput.files[0];
       if (!file) {
+        alert("Please select a CSV file first.");
         setResultState("❌ Please select a CSV file first.", "error", "File Required");
         return;
       }
@@ -379,17 +393,18 @@
       setResultState("⏳ Predicting...", "loading", "Processing");
 
       try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(`${API_URL}/predict-file`, {
           method: "POST",
           body: formData
         });
 
+        const data = await response.json().catch(() => ({}));
+
         if (!response.ok) {
-          throw new Error("API request failed");
+          throw new Error(data.detail || "API request failed");
         }
 
-        const data = await response.json();
-        setResultState(`✅ Prediction: ${JSON.stringify(data.prediction)}`, "success", "Completed");
+        setResultState(`✅ Prediction: ${formatPrediction(data.prediction)}`, "success", "Completed");
       } catch (error) {
         setResultState("❌ Error connecting to API", "error", "Connection Error");
       } finally {
