@@ -4,3 +4,4 @@ torch
 numpy
 scipy
 pandas
+python-multipart

@@ -1,29 +1,39 @@
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.model_loader import load_model, predict
 from app.schema import PredictInput
 
-from fastapi.middleware.cors import CORSMiddleware
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # or your frontend URL later
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 _model = None
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     global _model
-    _model = load_model()
+    logger.info("Loading model...")
+    try:
+        _model = load_model()
+        logger.info("Model loaded successfully")
+    except FileNotFoundError as exc:
+        logger.error("Model file not found: %s", exc)
+        _model = None
+    except Exception as exc:  # pragma: no cover - startup protection
+        logger.exception("Model failed to load: %s", exc)
+        _model = None
     yield
 
 
 app = FastAPI(title="Earthquake model API", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")

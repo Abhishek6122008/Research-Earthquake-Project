@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 import numpy as np
@@ -9,7 +10,9 @@ import torch
 import torch.nn as nn
 
 # Same path as deployment; weights must match ArrivalCNN below.
-MODEL_PATH = Path(__file__).resolve().parent.parent / "Dataset" / "training.pth"
+MODEL_PATH = Path(__file__).resolve().parent.parent / "dataset" / "training.pth"
+FALLBACK_MODEL_PATH = Path(__file__).resolve().parent.parent / "Dataset" / "training.pth"
+logger = logging.getLogger(__name__)
 
 # Matches models/xgboost_model.ipynb (TARGET_LEN / fix_length before ArrivalCNN training).
 SIGNAL_LEN = 6000
@@ -55,9 +58,18 @@ def _strip_module_prefix(state: dict) -> dict:
 
 
 def load_model() -> ArrivalCNN:
+    model_path = MODEL_PATH if MODEL_PATH.exists() else FALLBACK_MODEL_PATH
+    if not model_path.exists():
+        message = (
+            "Model file not found. Expected one of: "
+            f"{MODEL_PATH.as_posix()} or {FALLBACK_MODEL_PATH.as_posix()}"
+        )
+        logger.error(message)
+        raise FileNotFoundError(message)
+
     device = torch.device("cpu")
     checkpoint = torch.load(
-        str(MODEL_PATH),
+        str(model_path),
         map_location="cpu",
         weights_only=False,
     )
