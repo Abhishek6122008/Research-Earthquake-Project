@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Earthquake Prediction System</title>
+  <style>
+    :root {
+      --bg-1: #0a1020;
+      --bg-2: #171633;
+      --bg-3: #0f2a3f;
+      --text-main: #eef3ff;
+      --text-muted: #b8c2d9;
+      --card-bg: rgba(255, 255, 255, 0.1);
+      --card-border: rgba(255, 255, 255, 0.2);
+      --input-bg: rgba(255, 255, 255, 0.08);
+      --input-border: rgba(255, 255, 255, 0.24);
+      --accent: #5f8bff;
+      --accent-2: #60d4ff;
+      --ok: #54d199;
+      --warn: #f6c760;
+      --danger: #ff7d9d;
+      --shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+      --radius-lg: 22px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      overflow: hidden;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text-main);
+      background:
+        radial-gradient(1200px 700px at 10% 10%, #1f3358 0%, transparent 60%),
+        radial-gradient(1000px 600px at 90% 90%, #1e2d52 0%, transparent 55%),
+        linear-gradient(135deg, var(--bg-1), var(--bg-2) 45%, var(--bg-3));
+    }
+
+    .bg-orb {
+      position: fixed;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      filter: blur(42px);
+      opacity: 0.35;
+      z-index: 0;
+      animation: float 13s ease-in-out infinite;
+    }
+
+    .orb-a {
+      background: #56a6ff;
+      top: -110px;
+      right: -80px;
+    }
+
+    .orb-b {
+      background: #8a6bff;
+      left: -120px;
+      bottom: -90px;
+      animation-delay: -5s;
+    }
+
+    .orb-c {
+      background: #58ffd6;
+      left: 50%;
+      top: 68%;
+      width: 240px;
+      height: 240px;
+      opacity: 0.24;
+      animation-delay: -8s;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(16px, -18px) scale(1.05); }
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      width: min(680px, 100%);
+      padding: 34px 30px 26px;
+      border-radius: var(--radius-lg);
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: var(--shadow);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: linear-gradient(130deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      -webkit-mask-composite: xor;
+      padding: 1px;
+      opacity: 0.6;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 26px 56px rgba(0, 0, 0, 0.42);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(96, 212, 255, 0.16);
+      border: 1px solid rgba(96, 212, 255, 0.36);
+      color: #d9f6ff;
+      font-size: 0.78rem;
+      margin-bottom: 14px;
+      letter-spacing: 0.4px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.35rem, 2.1vw, 2rem);
+      letter-spacing: 0.2px;
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      color: var(--text-main);
+    }
+
+    .file-wrap {
+      position: relative;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--input-border);
+      background: var(--input-bg);
+      padding: 12px;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .file-wrap:focus-within {
+      border-color: rgba(96, 212, 255, 0.85);
+      box-shadow: 0 0 0 3px rgba(96, 212, 255, 0.2);
+    }
+
+    input[type="file"] {
+      width: 100%;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      border: none;
+      background: transparent;
+      outline: none;
+    }
+
+    input[type="file"]::file-selector-button {
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--text-main);
+      padding: 8px 12px;
+      margin-right: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+    }
+
+    .actions {
+      margin-top: 18px;
+    }
+
+    .predict-btn {
+      width: 100%;
+      border: none;
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f9fbff;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      cursor: pointer;
+      transition: transform 0.22s ease, box-shadow 0.25s ease, opacity 0.2s ease;
+      box-shadow: 0 10px 28px rgba(95, 139, 255, 0.38);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .predict-btn::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(110deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
+      transform: translateX(-120%);
+      transition: transform 0.65s ease;
+    }
+
+    .predict-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 0 0 2px rgba(136, 190, 255, 0.26), 0 14px 36px rgba(95, 139, 255, 0.48);
+    }
+
+    .predict-btn:hover:not(:disabled)::after {
+      transform: translateX(120%);
+    }
+
+    .predict-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .predict-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .result-box {
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(9, 13, 24, 0.5);
+      color: var(--text-main);
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      line-height: 1.45;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+      word-break: break-word;
+    }
+
+    .result-loading {
+      border-color: rgba(246, 199, 96, 0.5);
+      box-shadow: 0 0 0 2px rgba(246, 199, 96, 0.14) inset;
+      color: #ffe4a6;
+    }
+
+    .result-success {
+      border-color: rgba(84, 209, 153, 0.55);
+      box-shadow: 0 0 0 2px rgba(84, 209, 153, 0.16) inset;
+      color: #b8f7d9;
+    }
+
+    .result-error {
+      border-color: rgba(255, 125, 157, 0.6);
+      box-shadow: 0 0 0 2px rgba(255, 125, 157, 0.16) inset;
+      color: #ffc2d1;
+    }
+
+    .meta {
+      margin-top: 14px;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 6px;
+      border-radius: 50%;
+      background: #7f8ea3;
+      box-shadow: 0 0 0 0 rgba(127, 142, 163, 0.5);
+      transition: background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .status-dot.live {
+      background: #54d199;
+      box-shadow: 0 0 0 6px rgba(84, 209, 153, 0.18);
+    }
+
+    @media (max-width: 560px) {
+      .card {
+        padding: 24px 18px 20px;
+      }
+
+      .subtitle {
+        font-size: 0.94rem;
+      }
+
+      .meta {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <span class="bg-orb orb-a" aria-hidden="true"></span>
+  <span class="bg-orb orb-b" aria-hidden="true"></span>
+  <span class="bg-orb orb-c" aria-hidden="true"></span>
+
+  <main class="card">
+    <div class="eyebrow">AI Forecasting Suite</div>
+    <h1>🌍 Earthquake Prediction System</h1>
+    <p class="subtitle">
+      Upload a CSV file to run seismic prediction and receive instant model output.
+    </p>
+
+    <div class="field">
+      <label for="fileInput">Upload earthquake data (CSV)</label>
+      <div class="file-wrap">
+        <input id="fileInput" type="file" accept=".csv" />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="predictBtn" class="predict-btn" type="button">Predict</button>
+    </div>
+
+    <div id="resultBox" class="result-box">Awaiting file upload...</div>
+    <div class="meta">
+      <span><span id="statusDot" class="status-dot"></span><span id="statusText">Idle</span></span>
+      <span id="fileName">No file selected</span>
+    </div>
+  </main>
+
+  <script>
+    const API_URL = "http://127.0.0.1:8000/predict-file";
+    const fileInput = document.getElementById("fileInput");
+    const predictBtn = document.getElementById("predictBtn");
+    const resultBox = document.getElementById("resultBox");
+    const statusDot = document.getElementById("statusDot");
+    const statusText = document.getElementById("statusText");
+    const fileNameText = document.getElementById("fileName");
+
+    function setResultState(message, state, statusLabel) {
+      resultBox.textContent = message;
+      resultBox.classList.remove("result-loading", "result-success", "result-error");
+      if (state === "loading") resultBox.classList.add("result-loading");
+      if (state === "success") resultBox.classList.add("result-success");
+      if (state === "error") resultBox.classList.add("result-error");
+      statusDot.classList.toggle("live", state === "loading" || state === "success");
+      statusText.textContent = statusLabel;
+    }
+
+    async function predictFromFile() {
+      const file = fileInput.files[0];
+      if (!file) {
+        setResultState("❌ Please select a CSV file first.", "error", "File Required");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("file", file);
+
+      predictBtn.disabled = true;
+      setResultState("⏳ Predicting...", "loading", "Processing");
+
+      try {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          body: formData
+        });
+
+        if (!response.ok) {
+          throw new Error("API request failed");
+        }
+
+        const data = await response.json();
+        setResultState(`✅ Prediction: ${JSON.stringify(data.prediction)}`, "success", "Completed");
+      } catch (error) {
+        setResultState("❌ Error connecting to API", "error", "Connection Error");
+      } finally {
+        predictBtn.disabled = false;
+      }
+    }
+
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      fileNameText.textContent = file ? `Selected: ${file.name}` : "No file selected";
+    });
+
+    predictBtn.addEventListener("click", predictFromFile);
+  </script>
+</body>
+</html>

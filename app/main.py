@@ -5,6 +5,14 @@ from fastapi import FastAPI, HTTPException
 from app.model_loader import load_model, predict
 from app.schema import PredictInput
 
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or your frontend URL later
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 _model = None
 
 
