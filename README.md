@@ -27,7 +27,7 @@
 
 ### Project Overview
 
-<p><i>"The earthquake starts softly… then it hits hard."</i></p>
+<p><i>"The earthquake starts softly and then it hits hard."</i></p>
 
 <p>
 This project presents a complete end-to-end system for detecting
